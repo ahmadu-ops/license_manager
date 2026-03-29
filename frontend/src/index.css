@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom scrollbar */
+@layer base {
+  :root {
+    --color-violet-accent: #7C3AED;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 transition-colors duration-300;
+  }
+
+  /* Scrollbar dark */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  }
+}
