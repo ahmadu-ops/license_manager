@@ -2,24 +2,75 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Custom scrollbar */
+@theme {
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
+
+  --color-accent-400: #22D3EE;
+  --color-accent-500: #06B6D4;
+  --color-accent-600: #0891B2;
+
+  --color-surface-dark: #111827;
+  --color-surface-darker: #030712;
+  --color-border-dark: #1F2937;
+}
+
 @layer base {
-  :root {
-    --color-violet-accent: #7C3AED;
-  }
-
   body {
-    @apply bg-slate-50 text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 transition-colors duration-300;
+    @apply bg-slate-100 text-slate-900 dark:bg-surface-darker dark:text-slate-100;
+    @apply transition-colors duration-300;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Scrollbar dark */
-  ::-webkit-scrollbar {
-    width: 6px;
+  /* Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme(colors.slate.300) transparent;
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+  .dark * {
+    scrollbar-color: theme(colors.gray.700) transparent;
   }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-slate-300 dark:bg-gray-700; }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary-500/30 text-primary-900 dark:text-primary-100;
   }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.08) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(37, 99, 235, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(37, 99, 235, 0.5); }
+}
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }

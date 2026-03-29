@@ -30,7 +30,7 @@ export default function App() {
         <Toaster
           position="top-right"
           toastOptions={{
-            className: '!bg-white !text-slate-800 dark:!bg-[#1E293B] dark:!text-slate-100 !shadow-lg !border !border-slate-200 dark:!border-slate-700',
+            className: '!rounded-xl !bg-white !text-slate-800 !shadow-xl !border !border-slate-100 dark:!bg-surface-dark dark:!text-gray-100 dark:!border-border-dark',
             duration: 3000,
           }}
         />

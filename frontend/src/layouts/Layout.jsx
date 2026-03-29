@@ -9,11 +9,11 @@ export default function Layout() {
   if (!isAuth) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-slate-100 dark:bg-surface-darker">
       <Sidebar />
-      <div className="flex flex-1 flex-col pl-64">
+      <div className="flex flex-1 flex-col pl-[260px]">
         <Header />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>
