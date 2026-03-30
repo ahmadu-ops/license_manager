@@ -10,32 +10,32 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetch = () => {
+  const fetchAlerts = () => {
     setLoading(true);
     api.get('/alerts').then(({ data }) => setAlerts(data)).finally(() => setLoading(false));
   };
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetchAlerts(); }, []);
 
   const markRead = async (id) => {
     await api.patch(`/alerts/${id}/read`);
     toast.success('Alerte marquée comme lue.');
-    fetch();
+    fetchAlerts();
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">Alertes</h1>
+        <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">Alertes</h1>
         <p className="mt-1 text-sm text-slate-400 dark:text-gray-500">{alerts.length} alerte(s) non lue(s)</p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
+      <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
         {loading ? (
           <div className="p-6"><SkeletonTable rows={5} cols={4} /></div>
         ) : alerts.length === 0 ? (
           <div className="p-16 text-center">
             <BellAlertIcon className="mx-auto h-12 w-12 text-slate-200 dark:text-gray-700" />
-            <p className="mt-3 text-sm font-medium text-emerald-500">Aucune alerte en attente ✅</p>
+            <p className="mt-3 text-sm font-semibold text-emerald-500">Aucune alerte en attente ✅</p>
           </div>
         ) : (
           <table className="w-full text-left">
@@ -55,7 +55,7 @@ export default function Alerts() {
                     </Link>
                   </td>
                   <td className="px-4 py-3.5"><StatusBadge value={a.type} /></td>
-                  <td className="px-4 py-3.5 text-[13px] text-slate-400 dark:text-gray-500">{new Date(a.triggered_at).toLocaleDateString('fr-FR')}</td>
+                  <td className="px-4 py-3.5 text-[13px] text-slate-400 dark:text-gray-500">{new Date(a.triggered_at).toLocaleDateString('fr-SN')}</td>
                   <td className="px-4 py-3.5">
                     <button onClick={() => markRead(a.id)}
                       className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-semibold text-emerald-600 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10">

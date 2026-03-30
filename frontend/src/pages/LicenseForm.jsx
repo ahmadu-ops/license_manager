@@ -4,6 +4,8 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import api from '../hooks/useApi';
 import toast from 'react-hot-toast';
 
+const formatFCFA = (v) => Number(v).toLocaleString('fr-SN') + ' F';
+
 export default function LicenseForm() {
   const { id } = useParams();
   const isEdit = !!id;
@@ -37,8 +39,7 @@ export default function LicenseForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setErrors({});
+    setLoading(true); setErrors({});
     try {
       if (isEdit) { await api.put(`/licenses/${id}`, form); toast.success('Licence mise à jour !'); }
       else { await api.post('/licenses', form); toast.success('Licence créée !'); }
@@ -49,22 +50,22 @@ export default function LicenseForm() {
     } finally { setLoading(false); }
   };
 
-  const costPerSeat = form.seats > 0 && form.cost ? (parseFloat(form.cost) / parseInt(form.seats)).toFixed(2) : '—';
+  const costPerSeat = form.seats > 0 && form.cost ? formatFCFA((parseFloat(form.cost) / parseInt(form.seats)).toFixed(0)) : '—';
 
   const inputCls = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-border-dark dark:bg-surface-darker dark:text-white';
   const labelCls = 'mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-gray-300';
 
   return (
-    <div className="mx-auto max-w-2xl animate-fade-in">
+    <div className="mx-auto max-w-2xl">
       <button onClick={() => navigate('/licenses')} className="mb-4 flex items-center gap-2 text-[13px] font-medium text-slate-400 transition hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300">
         <ArrowLeftIcon className="h-4 w-4" /> Retour aux licences
       </button>
 
-      <h1 className="mb-6 text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">
+      <h1 className="mb-6 text-3xl font-black tracking-tight text-slate-800 dark:text-white">
         {isEdit ? 'Modifier la licence' : 'Nouvelle licence'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-surface-dark">
+      <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm dark:border-border-dark dark:bg-surface-dark">
         <div>
           <label className={labelCls}>Logiciel <span className="text-red-400">*</span></label>
           <select value={form.software_id} onChange={set('software_id')} className={inputCls}>
@@ -105,13 +106,13 @@ export default function LicenseForm() {
             <input type="number" min="1" value={form.seats} onChange={set('seats')} className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Coût total (€) <span className="text-red-400">*</span></label>
-            <input type="number" step="0.01" min="0" value={form.cost} onChange={set('cost')} className={inputCls} />
+            <label className={labelCls}>Coût total (FCFA) <span className="text-red-400">*</span></label>
+            <input type="number" step="1" min="0" value={form.cost} onChange={set('cost')} className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>Coût / siège</label>
             <div className="flex h-[42px] items-center rounded-xl border border-slate-100 bg-slate-50 px-4 text-sm font-bold text-primary-600 dark:border-border-dark dark:bg-surface-darker dark:text-primary-400">
-              {costPerSeat} €
+              {costPerSeat}
             </div>
           </div>
         </div>

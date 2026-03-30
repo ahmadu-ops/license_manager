@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 
-// Export CSV avec token en query string (téléchargement navigateur)
-Route::get('/licenses/export', function (Illuminate\Http\Request $request) {
+// Export PDF — accessible via token en query string
+Route::get('/licenses/export-pdf-download', function (\Illuminate\Http\Request $request) {
     if ($token = $request->query('token')) {
         $request->headers->set('Authorization', 'Bearer ' . $token);
     }
     $user = auth('sanctum')->user();
-    if (!$user) {
-        abort(401);
+    if (! $user) {
+        abort(401, 'Non autorisé');
     }
-    return app(App\Http\Controllers\Api\LicenseController::class)->export();
+    return app(LicenseController::class)->exportPdf();
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
-    Route::get('/licenses/export', [LicenseController::class, 'export']);
+    Route::get('/licenses/export-pdf', [LicenseController::class, 'exportPdf']);
     Route::apiResource('licenses', LicenseController::class);
 
     Route::post('/licenses/{license}/assignments', [AssignmentController::class, 'store']);
@@ -35,6 +35,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/alerts', [AlertController::class, 'index']);
     Route::patch('/alerts/{alert}/read', [AlertController::class, 'markAsRead']);
 
-    // Liste des logiciels (pour les selects)
     Route::get('/softwares', fn () => \App\Models\Software::orderBy('name')->get());
 });

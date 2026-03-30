@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   PlusIcon, MagnifyingGlassIcon, ArrowDownTrayIcon,
-  EyeIcon, PencilSquareIcon, TrashIcon,
+  EyeIcon, PencilSquareIcon, TrashIcon, KeyIcon,
 } from '@heroicons/react/24/outline';
 import api from '../hooks/useApi';
 import StatusBadge from '../components/StatusBadge';
@@ -23,6 +23,8 @@ const statuses = [
   { value: 'expired', label: 'Expirée' },
   { value: 'revoked', label: 'Révoquée' },
 ];
+
+const formatFCFA = (v) => Number(v).toLocaleString('fr-SN') + ' F CFA';
 
 export default function LicenseIndex() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,17 +66,20 @@ export default function LicenseIndex() {
   };
 
   const handleExport = () => {
-    window.open(`http://localhost:8000/api/licenses/export?token=${localStorage.getItem('token')}`, '_blank');
+    window.open(
+      `http://localhost:8000/api/licenses/export-pdf-download?token=${localStorage.getItem('token')}`,
+      '_blank'
+    );
   };
 
   const selectCls = 'rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[13px] font-medium text-slate-600 transition focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-border-dark dark:bg-surface-dark dark:text-gray-300';
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">Licences</h1>
+          <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">Licences</h1>
           <p className="mt-1 text-sm text-slate-400 dark:text-gray-500">Gérez toutes vos licences logicielles</p>
         </div>
         <div className="flex gap-2">
@@ -82,12 +87,10 @@ export default function LicenseIndex() {
             onClick={handleExport}
             className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50 dark:border-border-dark dark:text-gray-300 dark:hover:bg-gray-800"
           >
-            <ArrowDownTrayIcon className="h-4 w-4" /> Export CSV
+            <ArrowDownTrayIcon className="h-4 w-4" /> Export PDF
           </button>
-          <Link
-            to="/licenses/new"
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-primary-600/20 transition hover:from-primary-700 hover:to-primary-800 dark:from-primary-500 dark:to-primary-600"
-          >
+          <Link to="/licenses/new"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-2.5 text-[13px] font-bold text-white shadow-lg shadow-primary-600/20 transition hover:from-primary-700 hover:to-primary-800 dark:from-primary-500 dark:to-primary-600">
             <PlusIcon className="h-4 w-4" /> Nouvelle licence
           </Link>
         </div>
@@ -97,12 +100,9 @@ export default function LicenseIndex() {
       <div className="flex flex-wrap gap-3">
         <div className="relative min-w-[240px] flex-1">
           <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text" value={search}
-            onChange={(e) => setSearch(e.target.value)}
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un logiciel, éditeur…"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-[13px] transition focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-border-dark dark:bg-surface-dark dark:text-white"
-          />
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-[13px] transition focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-border-dark dark:bg-surface-dark dark:text-white" />
         </div>
         <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className={selectCls}>
           {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -113,7 +113,7 @@ export default function LicenseIndex() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
         {loading ? (
           <div className="p-6"><SkeletonTable rows={8} cols={7} /></div>
         ) : licenses.length === 0 ? (
@@ -126,7 +126,7 @@ export default function LicenseIndex() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 dark:border-border-dark dark:bg-surface-darker/50">
-                  {['Logiciel','Type','Statut','Sièges','Expiration','Coût',''].map((h) => (
+                  {['Logiciel', 'Type', 'Statut', 'Sièges', 'Expiration', 'Coût (FCFA)', ''].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -151,16 +151,14 @@ export default function LicenseIndex() {
                     </td>
                     <td className="px-4 py-3.5"><StatusBadge value={lic.type} /></td>
                     <td className="px-4 py-3.5"><StatusBadge value={lic.status} /></td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-[13px] font-medium text-slate-600 dark:text-gray-300">
-                        {lic.active_seats ?? 0}<span className="text-slate-300 dark:text-gray-600">/{lic.seats}</span>
-                      </span>
+                    <td className="px-4 py-3.5 text-[13px] font-medium text-slate-600 dark:text-gray-300">
+                      {lic.active_seats ?? 0}<span className="text-slate-300 dark:text-gray-600">/{lic.seats}</span>
                     </td>
                     <td className="px-4 py-3.5 text-[13px] text-slate-500 dark:text-gray-400">
-                      {lic.expires_at ? new Date(lic.expires_at).toLocaleDateString('fr-FR') : '∞'}
+                      {lic.expires_at ? new Date(lic.expires_at).toLocaleDateString('fr-SN') : '∞'}
                     </td>
                     <td className="px-4 py-3.5 text-[13px] font-semibold text-slate-700 dark:text-white">
-                      {Number(lic.cost).toLocaleString('fr-FR')} €
+                      {formatFCFA(lic.cost)}
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
@@ -182,21 +180,20 @@ export default function LicenseIndex() {
           </div>
         )}
 
-        {/* Pagination */}
         {pagination.last > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-border-dark">
             <p className="text-[12px] text-slate-400 dark:text-gray-500">
               {pagination.total} résultat(s) — Page {pagination.current}/{pagination.last}
             </p>
             <div className="flex gap-1">
-              {[
-                { label: '← Précédent', disabled: pagination.current <= 1, fn: () => setPage((p) => p - 1) },
-                { label: 'Suivant →', disabled: pagination.current >= pagination.last, fn: () => setPage((p) => p + 1) },
-              ].map(({ label, disabled, fn }) => (
-                <button key={label} disabled={disabled} onClick={fn}
-                  className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:text-gray-400 dark:hover:bg-gray-800"
-                >{label}</button>
-              ))}
+              <button disabled={pagination.current <= 1} onClick={() => setPage((p) => p - 1)}
+                className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:text-gray-400 dark:hover:bg-gray-800">
+                ← Précédent
+              </button>
+              <button disabled={pagination.current >= pagination.last} onClick={() => setPage((p) => p + 1)}
+                className="rounded-lg px-3 py-1.5 text-[12px] font-medium text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:text-gray-400 dark:hover:bg-gray-800">
+                Suivant →
+              </button>
             </div>
           </div>
         )}

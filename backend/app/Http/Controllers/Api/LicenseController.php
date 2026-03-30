@@ -9,6 +9,8 @@ use App\Models\License;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Alert;
 
 class LicenseController extends Controller
 {
@@ -91,11 +93,10 @@ class LicenseController extends Controller
 
         return response()->stream(function () use ($licenses) {
             $out = fopen('php://output', 'w');
-            // BOM UTF-8
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, [
                 'ID', 'Logiciel', 'Éditeur', 'Catégorie', 'Clé',
-                'Type', 'Sièges', 'Statut', 'Achat', 'Expiration', 'Coût (€)', 'Notes',
+                'Type', 'Sièges', 'Statut', 'Achat', 'Expiration', 'Coût (FCFA)', 'Notes',
             ], ';');
 
             foreach ($licenses as $l) {
@@ -104,18 +105,42 @@ class LicenseController extends Controller
                     $l->software->name,
                     $l->software->vendor,
                     $l->software->category->label(),
-                    $l->license_key, // déchiffré par le cast
+                    $l->license_key,
                     $l->type->label(),
                     $l->seats,
                     $l->status->label(),
                     $l->purchased_at->format('d/m/Y'),
                     $l->expires_at?->format('d/m/Y') ?? 'N/A',
-                    number_format((float) $l->cost, 2, ',', ' '),
+                    number_format((float) $l->cost, 0, ',', ' '),
                     $l->notes,
                 ], ';');
             }
 
             fclose($out);
         }, 200, $headers);
+    }
+
+    public function exportPdf()
+    {
+        $licenses = License::with('software')->orderBy('software_id')->get();
+
+        $stats = [
+            'total'        => License::count(),
+            'active'       => License::where('status', 'active')->count(),
+            'expired'      => License::where('status', 'expired')->count(),
+            'expiringSoon' => License::where('status', 'active')
+                ->whereBetween('expires_at', [now(), now()->addDays(30)])
+                ->count(),
+        ];
+
+        $alerts = Alert::with('license.software')
+            ->where('is_read', false)
+            ->latest('triggered_at')
+            ->get();
+
+        $pdf = Pdf::loadView('exports.licenses-pdf', compact('licenses', 'stats', 'alerts'));
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download('licences_' . date('Y-m-d') . '.pdf');
     }
 }

@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Sidebar from './Sidebar';
 import Header from './Header';
 
 export default function Layout() {
@@ -9,14 +8,11 @@ export default function Layout() {
   if (!isAuth) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-screen bg-slate-100 dark:bg-surface-darker">
-      <Sidebar />
-      <div className="flex flex-1 flex-col pl-[260px]">
-        <Header />
-        <main className="flex-1 p-6 animate-fade-in">
-          <Outlet />
-        </main>
-      </div>
+    <div className="min-h-screen bg-slate-100 dark:bg-surface-darker">
+      <Header />
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in">
+        <Outlet />
+      </main>
     </div>
   );
 }
