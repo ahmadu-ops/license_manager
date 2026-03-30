@@ -48,12 +48,9 @@ export default function Header() {
               <KeyIcon className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <span className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-[20px] font-extrabold tracking-tight text-slate-900 dark:text-white">
                 LicenceManager
               </span>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-gray-600">
-                Dakar · Sénégal
-              </p>
             </div>
           </div>
 

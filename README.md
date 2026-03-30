@@ -172,7 +172,7 @@ license-manager/
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-user/license-manager.git
+git clone https://github.com/ahmadu-ops/license-manager.git
 cd license-manager
 ```
 
@@ -431,4 +431,4 @@ Ce projet est sous licence MIT.
 
 ## 👤 Auteur
 
-Cheikhouna Modou Bamba FALL - ahmadu-ops
+Cheikhouna Modou Bamba FALL

@@ -45,7 +45,7 @@ export default function Login() {
               LicenceManager
             </h1>
             <p className="mt-2 text-sm text-slate-400 dark:text-gray-500">
-              Dakar, Sénégal 🇸🇳 — Connectez-vous
+              Connectez-vous
             </p>
           </div>
 

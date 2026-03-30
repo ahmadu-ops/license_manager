@@ -147,7 +147,7 @@ export default function Dashboard() {
           Tableau de bord
         </h1>
         <p className="mt-1 text-sm text-slate-400 dark:text-gray-500">
-          Vue d'ensemble — Dakar, Sénégal 🇸🇳
+          Vue d'ensemble — Dakar, Sénégal
         </p>
       </div>
 
