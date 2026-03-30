@@ -6,7 +6,9 @@ import {
 } from '@heroicons/react/24/outline';
 import api from '../hooks/useApi';
 import StatusBadge from '../components/StatusBadge';
+import SoftwareAvatar from '../components/SoftwareAvatar';
 import SkeletonTable from '../components/SkeletonTable';
+import ConfirmModal from '../components/ConfirmModal';
 import toast from 'react-hot-toast';
 
 const categories = [
@@ -31,6 +33,8 @@ export default function LicenseIndex() {
   const [licenses, setLicenses] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [status, setStatus] = useState(searchParams.get('status') || '');
@@ -48,8 +52,11 @@ export default function LicenseIndex() {
       setLicenses(data.data);
       setPagination({ current: data.current_page, last: data.last_page, total: data.total });
       setSearchParams(params);
-    } catch { toast.error('Erreur de chargement.'); }
-    finally { setLoading(false); }
+    } catch {
+      toast.error('Erreur de chargement.');
+    } finally {
+      setLoading(false);
+    }
   }, [page, search, status, category]);
 
   useEffect(() => {
@@ -59,10 +66,19 @@ export default function LicenseIndex() {
 
   useEffect(() => { fetchLicenses(); }, [page, status, category]);
 
-  const handleDelete = async (id) => {
-    if (!confirm('Supprimer cette licence ?')) return;
-    try { await api.delete(`/licenses/${id}`); toast.success('Licence supprimée.'); fetchLicenses(); }
-    catch { toast.error('Erreur de suppression.'); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/licenses/${deleteTarget.id}`);
+      toast.success('Licence supprimée.');
+      setDeleteTarget(null);
+      fetchLicenses();
+    } catch {
+      toast.error('Erreur de suppression.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleExport = () => {
@@ -79,14 +95,12 @@ export default function LicenseIndex() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">Licences</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">Licences</h1>
           <p className="mt-1 text-sm text-slate-400 dark:text-gray-500">Gérez toutes vos licences logicielles</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50 dark:border-border-dark dark:text-gray-300 dark:hover:bg-gray-800"
-          >
+          <button onClick={handleExport}
+            className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50 dark:border-border-dark dark:text-gray-300 dark:hover:bg-gray-800">
             <ArrowDownTrayIcon className="h-4 w-4" /> Export PDF
           </button>
           <Link to="/licenses/new"
@@ -98,7 +112,7 @@ export default function LicenseIndex() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="relative min-w-[240px] flex-1">
+        <div className="relative min-w-[200px] flex-1">
           <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un logiciel, éditeur…"
@@ -113,7 +127,7 @@ export default function LicenseIndex() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-border-dark dark:bg-surface-dark">
         {loading ? (
           <div className="p-6"><SkeletonTable rows={8} cols={7} /></div>
         ) : licenses.length === 0 ? (
@@ -136,13 +150,7 @@ export default function LicenseIndex() {
                   <tr key={lic.id} className="group transition-colors hover:bg-primary-50/30 dark:hover:bg-primary-500/5">
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
-                        {lic.software?.logo_url ? (
-                          <img src={lic.software.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain" />
-                        ) : (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-                            <KeyIcon className="h-4 w-4 text-slate-400" />
-                          </div>
-                        )}
+                        <SoftwareAvatar name={lic.software?.name} category={lic.software?.category} size="sm" />
                         <div>
                           <p className="text-[13px] font-semibold text-slate-700 dark:text-white">{lic.software?.name}</p>
                           <p className="text-[11px] text-slate-400 dark:text-gray-500">{lic.software?.vendor}</p>
@@ -168,7 +176,10 @@ export default function LicenseIndex() {
                         <Link to={`/licenses/${lic.id}/edit`} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-400">
                           <PencilSquareIcon className="h-4 w-4" />
                         </Link>
-                        <button onClick={() => handleDelete(lic.id)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                        <button
+                          onClick={() => setDeleteTarget(lic)}
+                          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                        >
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -198,6 +209,18 @@ export default function LicenseIndex() {
           </div>
         )}
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Supprimer cette licence ?"
+        message={`La licence "${deleteTarget?.software?.name}" et toutes ses attributions seront définitivement supprimées.`}
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

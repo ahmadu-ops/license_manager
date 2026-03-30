@@ -9,6 +9,9 @@ import LicenseIndex from './pages/LicenseIndex';
 import LicenseForm from './pages/LicenseForm';
 import LicenseShow from './pages/LicenseShow';
 import Alerts from './pages/Alerts';
+import SoftwareIndex from './pages/SoftwareIndex';
+import SoftwareForm from './pages/SoftwareForm';
+import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
@@ -24,6 +27,10 @@ export default function App() {
               <Route path="/licenses/:id" element={<LicenseShow />} />
               <Route path="/licenses/:id/edit" element={<LicenseForm />} />
               <Route path="/alerts" element={<Alerts />} />
+              <Route path="/softwares" element={<SoftwareIndex />} />
+              <Route path="/softwares/new" element={<SoftwareForm />} />
+              <Route path="/softwares/:id/edit" element={<SoftwareForm />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </BrowserRouter>

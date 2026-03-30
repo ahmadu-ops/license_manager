@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLicenseRequest;
 use App\Http\Requests\UpdateLicenseRequest;
+use App\Models\Alert;
 use App\Models\License;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Alert;
 
 class LicenseController extends Controller
 {
@@ -19,19 +18,16 @@ class LicenseController extends Controller
         $query = License::with('software')
             ->withCount(['assignments as active_seats' => fn ($q) => $q->whereNull('returned_at')]);
 
-        // Filtre statut
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filtre catégorie (via software)
         if ($request->filled('category')) {
             $query->whereHas('software', fn ($q) =>
                 $q->where('category', $request->category)
             );
         }
 
-        // Recherche
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -42,9 +38,7 @@ class LicenseController extends Controller
             });
         }
 
-        $licenses = $query->latest()->paginate(15);
-
-        return response()->json($licenses);
+        return response()->json($query->latest()->paginate(15));
     }
 
     public function store(StoreLicenseRequest $request): JsonResponse
@@ -82,44 +76,6 @@ class LicenseController extends Controller
         return response()->json(['message' => 'Licence supprimée.']);
     }
 
-    public function export(): StreamedResponse
-    {
-        $licenses = License::with('software')->get();
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="licences_' . date('Y-m-d') . '.csv"',
-        ];
-
-        return response()->stream(function () use ($licenses) {
-            $out = fopen('php://output', 'w');
-            fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, [
-                'ID', 'Logiciel', 'Éditeur', 'Catégorie', 'Clé',
-                'Type', 'Sièges', 'Statut', 'Achat', 'Expiration', 'Coût (FCFA)', 'Notes',
-            ], ';');
-
-            foreach ($licenses as $l) {
-                fputcsv($out, [
-                    $l->id,
-                    $l->software->name,
-                    $l->software->vendor,
-                    $l->software->category->label(),
-                    $l->license_key,
-                    $l->type->label(),
-                    $l->seats,
-                    $l->status->label(),
-                    $l->purchased_at->format('d/m/Y'),
-                    $l->expires_at?->format('d/m/Y') ?? 'N/A',
-                    number_format((float) $l->cost, 0, ',', ' '),
-                    $l->notes,
-                ], ';');
-            }
-
-            fclose($out);
-        }, 200, $headers);
-    }
-
     public function exportPdf()
     {
         $licenses = License::with('software')->orderBy('software_id')->get();
@@ -129,6 +85,7 @@ class LicenseController extends Controller
             'active'       => License::where('status', 'active')->count(),
             'expired'      => License::where('status', 'expired')->count(),
             'expiringSoon' => License::where('status', 'active')
+                ->whereNotNull('expires_at')
                 ->whereBetween('expires_at', [now(), now()->addDays(30)])
                 ->count(),
         ];

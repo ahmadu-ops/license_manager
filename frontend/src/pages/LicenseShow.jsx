@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline';
 import api from '../hooks/useApi';
 import StatusBadge from '../components/StatusBadge';
+import SoftwareAvatar from '../components/SoftwareAvatar';
 import AssignmentModal from '../components/AssignmentModal';
 import SkeletonTable from '../components/SkeletonTable';
 import toast from 'react-hot-toast';
@@ -25,7 +26,10 @@ export default function LicenseShow() {
   };
   useEffect(() => { fetchLicense(); }, [id]);
 
-  const copyKey = () => { navigator.clipboard.writeText(license.license_key); toast.success('Clé copiée !'); };
+  const copyKey = () => {
+    navigator.clipboard.writeText(license.license_key);
+    toast.success('Clé copiée !');
+  };
 
   const handleReturn = async (aId) => {
     if (!confirm('Confirmer le retour ?')) return;
@@ -50,15 +54,15 @@ export default function LicenseShow() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          {license.software?.logo_url ? (
-            <img src={license.software.logo_url} alt="" className="h-14 w-14 rounded-2xl border border-slate-100 bg-white p-1.5 object-contain dark:border-border-dark dark:bg-surface-dark" />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 dark:bg-primary-500/10">
-              <span className="text-xl font-bold text-primary-600 dark:text-primary-400">{license.software?.name?.charAt(0)}</span>
-            </div>
-          )}
+          <SoftwareAvatar
+            name={license.software?.name}
+            category={license.software?.category}
+            size="lg"
+          />
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">{license.software?.name}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">
+              {license.software?.name}
+            </h1>
             <p className="text-sm text-slate-400 dark:text-gray-500">{license.software?.vendor}</p>
           </div>
         </div>
@@ -71,8 +75,10 @@ export default function LicenseShow() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Clé + Détails */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm dark:border-border-dark dark:bg-surface-dark">
-            <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-gray-500">Clé de licence</h3>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-surface-dark">
+            <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-gray-500">
+              Clé de licence
+            </h3>
             <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 dark:border-border-dark dark:bg-surface-darker">
               <code className="flex-1 font-mono text-sm tracking-wider text-slate-700 dark:text-gray-200">
                 {showKey ? license.license_key : '••••-••••-••••-••••'}
@@ -107,7 +113,7 @@ export default function LicenseShow() {
           </div>
 
           {/* Assignments */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-7 shadow-sm dark:border-border-dark dark:bg-surface-dark">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-surface-dark">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-gray-500">Attributions</h3>
@@ -119,7 +125,7 @@ export default function LicenseShow() {
               </button>
             </div>
 
-            <div className="mb-5 h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-gray-700">
+            <div className="mb-5 h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-gray-700">
               <div className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-red-500' : pct > 80 ? 'bg-amber-500' : 'bg-primary-500'}`} style={{ width: `${pct}%` }} />
             </div>
 
@@ -147,7 +153,7 @@ export default function LicenseShow() {
                       </td>
                       <td className="py-2.5">
                         {!a.returned_at && (
-                          <button onClick={() => handleReturn(a.id)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-400" title="Retourner">
+                          <button onClick={() => handleReturn(a.id)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-400">
                             <ArrowUturnLeftIcon className="h-4 w-4" />
                           </button>
                         )}
@@ -162,7 +168,7 @@ export default function LicenseShow() {
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-surface-dark">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-border-dark dark:bg-surface-dark">
             <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-gray-500">Alertes</h3>
             {license.alerts?.length === 0 ? (
               <div className="rounded-xl bg-emerald-50 p-3 text-center dark:bg-emerald-500/5">

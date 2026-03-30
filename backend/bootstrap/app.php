@@ -11,10 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // CORS tout premier — avant tout
         $middleware->prepend(\App\Http\Middleware\Cors::class);
-
-        // Sanctum
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
